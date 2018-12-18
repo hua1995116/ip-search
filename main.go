@@ -9,13 +9,29 @@ import(
     "strings"
 )
 
+const (
+    MAX_COUNT = 2000
+)
+
+var ipMap = make(map[string]int)
+
 func getIp(w http.ResponseWriter, r *http.Request) {
     ip := r.Header.Get("X-Real-IP")
     if ip == ""{
 	    // 当请求头不存在即不存在代理时直接获取ip
 		ip = strings.Split(r.RemoteAddr, ":")[0]
-	}
-    fmt.Println(ip)
+    }
+
+    if ipMap[ip] > 2000 {
+        fmt.Fprintf(w, "接口调用频繁")
+    }
+
+    if ipMap[ip] == 0 {
+        ipMap[ip] = 1
+    } else {
+        ipMap[ip] = ipMap[ip] + 1
+    }
+    fmt.Println(ipMap)
 }
 
 func handleSearch(w http.ResponseWriter, r *http.Request) {
@@ -24,7 +40,6 @@ func handleSearch(w http.ResponseWriter, r *http.Request) {
         t, _ := template.ParseFiles("./search.html")
         log.Println(t.Execute(w, nil))
     } else {
-        //请求的是登录数据，那么执行登录的逻辑判断
         Squery := r.FormValue("search")
         fmt.Println(Squery)
 
