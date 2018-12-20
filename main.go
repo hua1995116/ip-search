@@ -3,10 +3,16 @@ package main
 import(
 	"fmt"
 	"html/template"
-	"log"
+    "log"
+    "io"
 	"net/http"
     "regexp"
     "strings"
+    "strconv"
+    "crypto/md5"
+    "time"
+    // "encoding/base64"
+    "encoding/hex"
 )
 
 const (
@@ -17,6 +23,15 @@ var ipMap = make(map[string]int)
 
 func getIp(w http.ResponseWriter, r *http.Request) {
     ip := r.Header.Get("X-Real-IP")
+    r.ParseForm(); 
+    id := r.Form.Get("id")
+    fmt.Println(id)
+    crutime := time.Now().Unix()
+    h := md5.New()
+    io.WriteString(h, strconv.FormatInt(crutime, 10))
+    sum := hex.EncodeToString(h.Sum(nil))
+    fmt.Println(sum)
+
     if ip == ""{
 	    // 当请求头不存在即不存在代理时直接获取ip
 		ip = strings.Split(r.RemoteAddr, ":")[0]
