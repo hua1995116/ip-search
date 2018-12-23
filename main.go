@@ -1,15 +1,16 @@
 package main
 
-import(
-	"fmt"
-	"html/template"
-    "log"
-    "io"
-	"net/http"
-    "regexp"
-    "strings"
-    "strconv"
+import (
     "crypto/md5"
+    "fmt"
+    "html/template"
+    "io"
+    "log"
+    "net"
+    "net/http"
+    "strconv"
+    "strings"
+    "sync"
     "time"
     // "encoding/base64"
     "encoding/hex"
@@ -18,9 +19,15 @@ import(
 const (
     MAX_COUNT = 2000
     PUBLIC = "public"
+    MINUTE = time.Second * 60
 )
 
-var ipMap = make(map[string]int)
+type IpItem struct {
+    lock sync.Mutex
+    count int
+}
+
+var ipMap = make(map[string]*IpItem)
 
 func getIp(w http.ResponseWriter, r *http.Request) {
     ip := r.Header.Get("X-Real-IP")
@@ -29,46 +36,42 @@ func getIp(w http.ResponseWriter, r *http.Request) {
 		ip = strings.Split(r.RemoteAddr, ":")[0]
     }
 
-    r.ParseForm(); 
+    r.ParseForm()
     key := r.Form.Get("key")
-    
+    fmt.Println("key is ", key)
     if key == "" {
-        // 没有key的情况，公用池
-        fmt.Println("公用情况")
-        if ipMap[PUBLIC] > 2000 {
-            fmt.Fprintf(w, "接口调用频繁")
-            return;
-        }
-        if ipMap[PUBLIC] == 0 {
-            ipMap[PUBLIC] = 1
-        } else {
-            ipMap[PUBLIC] = ipMap[PUBLIC] + 1
-        }
-        fmt.Println(ipMap)
-        fmt.Fprintf(w, "公用通道")
-        return
+        ip = PUBLIC
+        fmt.Println("公用通道")
     } else {
-        fmt.Println(key)
-        if ipMap[ip] > 2000 {
-            fmt.Fprintf(w, "接口调用频繁")
-        }
-        if ipMap[ip] == 0 {
-            ipMap[ip] = 1
-        } else {
-            ipMap[ip] = ipMap[ip] + 1
-        }
-        fmt.Println(ipMap)
-        fmt.Fprintf(w, "单用通道")
+        fmt.Println("单用通道")
     }
+    if ipMap[ip] == nil {
+        ipMap[ip] = &IpItem{count: 0}
+    }
+    ipMap[ip].lock.Lock()
+    ipMap[ip].count ++
+    ipMap[ip].lock.Unlock()
+    for key, value := range ipMap {
+        fmt.Println(key, "数量为: ",value.count)
+    }
+    if ipMap[ip].count > MAX_COUNT {
+        fmt.Println( "接口调用频繁")
+        fmt.Fprintf(w, "接口调用频繁")
+        return
+    }
+    fmt.Println( "接口调用正常")
+    fmt.Fprintf(w, "接口调用正常")
+
 }
 
 func resetPublicMap() {
-    const MINUTE = time.Second * 60
+    fmt.Println("重置装置启动")
     t1 := time.NewTimer(MINUTE * 5)
     for {
         select {
             case <-t1.C:
-                ipMap[PUBLIC] = 0
+                fmt.Println("成功重置1次")
+                ipMap[PUBLIC].count = 0
                 t1.Reset(MINUTE * 5)
         }
     }
@@ -88,20 +91,26 @@ func handleSearch(w http.ResponseWriter, r *http.Request) {
             return
         }
 
-        if m, _ := regexp.MatchString(`^\d{1,4}\.\d{1,4}\.\d{1,4}.\d{1,4}$`, Squery); !m {
+        addr := net.ParseIP(Squery)
+        if addr == nil {
             fmt.Fprintf(w, "格式错误!")
             return
         }
+
         fmt.Fprintf(w, "ip填写正确")
     }
 }
 
 func handleApply (w http.ResponseWriter, r *http.Request) {
-    crutime := time.Now().Unix()
+    curtime := time.Now().Unix()
     h := md5.New()
-    io.WriteString(h, strconv.FormatInt(crutime, 10))
+    io.WriteString(h, strconv.FormatInt(curtime, 10))
     sum := hex.EncodeToString(h.Sum(nil))
     fmt.Fprintf(w, sum)
+}
+
+func init () {
+    go resetPublicMap()
 }
 
 func main() {
@@ -112,5 +121,4 @@ func main() {
     if err != nil {
         log.Fatal("ListenAndServe: ", err)
     }
-    resetPublicMap()
 }
