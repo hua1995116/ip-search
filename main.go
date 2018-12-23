@@ -17,13 +17,14 @@ import(
 
 const (
     MAX_COUNT = 2000
+    PUBLIC = "public"
 )
 
 var ipMap = make(map[string]int)
 
 func getIp(w http.ResponseWriter, r *http.Request) {
     ip := r.Header.Get("X-Real-IP")
-    if ip == ""{
+    if ip == "" {
 	    // 当请求头不存在即不存在代理时直接获取ip
 		ip = strings.Split(r.RemoteAddr, ":")[0]
     }
@@ -34,18 +35,18 @@ func getIp(w http.ResponseWriter, r *http.Request) {
     if key == "" {
         // 没有key的情况，公用池
         fmt.Println("公用情况")
-        if ipMap["public"] > 2000 {
+        if ipMap[PUBLIC] > 2000 {
             fmt.Fprintf(w, "接口调用频繁")
             return;
         }
-        if ipMap["public"] == 0 {
-            ipMap["public"] = 1
+        if ipMap[PUBLIC] == 0 {
+            ipMap[PUBLIC] = 1
         } else {
-            ipMap["public"] = ipMap["public"] + 1
+            ipMap[PUBLIC] = ipMap[PUBLIC] + 1
         }
         fmt.Println(ipMap)
         fmt.Fprintf(w, "公用通道")
-        return;
+        return
     } else {
         fmt.Println(key)
         if ipMap[ip] > 2000 {
@@ -66,9 +67,9 @@ func resetPublicMap() {
     t1 := time.NewTimer(MINUTE * 5)
     for {
         select {
-        case <-t1.C:
-            ipMap["public"] = 0
-            t1.Reset(MINUTE * 5)
+            case <-t1.C:
+                ipMap[PUBLIC] = 0
+                t1.Reset(MINUTE * 5)
         }
     }
 }
@@ -105,7 +106,7 @@ func handleApply (w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	http.HandleFunc("/ip", getIp)       //设置访问的路由
-    http.HandleFunc("/search", handleSearch)         //设置访问的路由
+    http.HandleFunc("/search", handleSearch) //设置访问的路由
     http.HandleFunc("/apply", handleApply)
     err := http.ListenAndServe(":9090", nil) //设置监听的端口
     if err != nil {
