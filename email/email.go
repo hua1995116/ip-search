@@ -1,4 +1,4 @@
-package main
+package email
 
 import (
 	"fmt"
@@ -6,18 +6,10 @@ import (
 	"strings"
 )
 
-func main() {
-	// 邮箱地址
-	UserEmail := ""
-	// 端口号，:25也行
-	Mail_Smtp_Port := ""
-	//邮箱的授权码，去邮箱自己获取
-	Mail_Password := ""
-	// 此处填写SMTP服务器
-	Mail_Smtp_Host := ""
+func sendMail() {
 	auth := smtp.PlainAuth("", UserEmail, Mail_Password, Mail_Smtp_Host)
-	to := []string{""}
-	nickname := ""
+	to := []string{"qiufenghyf@163.com"}
+	nickname := "秋风"
 	user := UserEmail
 
 	subject := "标题"
