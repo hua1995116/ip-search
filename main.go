@@ -83,15 +83,15 @@ func handleSearch(w http.ResponseWriter, r *http.Request) {
         t, _ := template.ParseFiles("./search.html")
         log.Println(t.Execute(w, nil))
     } else {
-        Squery := r.FormValue("search")
-        fmt.Println(Squery)
+        sQuery := r.FormValue("search")
+        fmt.Println(sQuery)
 
-        if len(Squery) > 50 && len(Squery) < 1 {
+        if len(sQuery) > 50 && len(sQuery) < 1 {
             fmt.Fprintf(w, "请填写正确的长度!")
             return
         }
 
-        addr := net.ParseIP(Squery)
+        addr := net.ParseIP(sQuery)
         if addr == nil {
             fmt.Fprintf(w, "格式错误!")
             return
@@ -109,6 +109,19 @@ func handleApply (w http.ResponseWriter, r *http.Request) {
     fmt.Fprintf(w, sum)
 }
 
+
+func handleRegister(w http.ResponseWriter, r *http.Request) {
+    if r.Method == "POST" {
+        email := r.FormValue("email")
+        code  := r.FormValue("code")
+
+    }
+}
+
+func handleLogin(w http.ResponseWriter, r *http.Request) {
+
+}
+
 func init () {
     go resetPublicMap()
 }
@@ -116,7 +129,9 @@ func init () {
 func main() {
 	http.HandleFunc("/ip", getIp)       //设置访问的路由
     http.HandleFunc("/search", handleSearch) //设置访问的路由
-    http.HandleFunc("/apply", handleApply)
+    http.HandleFunc("/apply", handleApply) //设置访问的路由
+    http.HandleFunc("/register", handleRegister)
+    http.HandleFunc("/login", handleLogin)
     err := http.ListenAndServe(":9090", nil) //设置监听的端口
     if err != nil {
         log.Fatal("ListenAndServe: ", err)
