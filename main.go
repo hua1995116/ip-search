@@ -146,7 +146,7 @@ func main() {
     http.HandleFunc("/apply", handleApply) //设置访问的路由
     http.HandleFunc("/register", handleRegister)
     http.HandleFunc("/login", handleLogin)
-    err := http.ListenAndServe(":9090", nil) //设置监听的端口
+    err := http.ListenAndServe(":7878", nil) //设置监听的端口
     if err != nil {
         log.Fatal("ListenAndServe: ", err)
     }
