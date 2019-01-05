@@ -61,7 +61,14 @@ func getIp(w http.ResponseWriter, r *http.Request) {
         return
     }
     fmt.Println( "接口调用正常")
-    fmt.Fprintf(w, "接口调用正常")
+    //fmt.Fprintf(w, "接口调用正常")
+    res, err := ipquery.IpFind(ip)
+
+    if err != nil {
+        fmt.Fprintf(w, "抱歉库内暂无收入该ip")
+    } else {
+        fmt.Fprintf(w, string(res))
+    }
 
 }
 
@@ -81,7 +88,7 @@ func resetPublicMap() {
 func handleSearch(w http.ResponseWriter, r *http.Request) {
     fmt.Println("method:", r.Method) //获取请求的方法
     if r.Method == "GET" {
-        t, _ := template.ParseFiles("./search.html")
+        t, _ := template.ParseFiles("./view/search.html")
         log.Println(t.Execute(w, nil))
     } else {
         sQuery := r.FormValue("search")

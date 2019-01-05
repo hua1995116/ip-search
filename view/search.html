@@ -1,0 +1,89 @@
+<html>
+<head>
+    <meta charset="utf-8" />
+<title>ip查询</title>
+    <link rel="stylesheet" href="https://cdn.bootcss.com/minireset.css/0.0.2/minireset.min.css">
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style>
+        .wraper {
+            width: 100%;
+            height: 100%;
+            background: url("https://s3.qiufengh.com/ip-bg.png") no-repeat center;
+            background-size: cover;
+        }
+        .wraper-people {
+            height: 750px;
+        }
+        .wraper-people img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wraper-search {
+            margin-top: 300px;
+            padding: 20px 30px;
+        }
+        @media (max-width: 991px) {
+            .wraper-people img {
+                display: none !important;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="wraper">
+    <div class="row">
+        <div class="wraper-search col">
+            <div class="input-group mb-3">
+                <input id="search" type="text" class="form-control" placeholder="输入你的ip" aria-label="Recipient's username" aria-describedby="basic-addon2">
+                <div class="input-group-append">
+                    <button id="submit" class="btn btn-primary" type="button">查询</button>
+                </div>
+            </div>
+            <p class="tip"></p>
+        </div>
+        <div class="wraper-people col">
+            <img src="https://s3.qiufengh.com/people.png" alt="">
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+<script>
+    $.ajax({
+        type: "GET",
+        url: "/ip",
+        dataType: "text",
+        success: function (result) {
+            console.log(result);
+            $(".tip").text(result);
+        },
+        error : function() {
+            console.log("异常！");
+        }
+    })
+    $("#submit").click(function () {
+        var value = $("#search").val();
+        if (!value) {
+            alert("不能为空");
+        }
+        $.ajax({
+            type: "POST",
+            url: "/search",
+            data: {
+                search: value
+            },
+            dataType: "text",
+            success: function (result) {
+                console.log(result);
+                $(".tip").text(result);
+            },
+            error : function() {
+                console.log("异常！");
+            }
+        })
+    })
+</script>
+</body>
+</html>
