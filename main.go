@@ -1,8 +1,9 @@
-package ipsearch
+package main
 
 import (
     "crypto/md5"
     "fmt"
+    "github.com/hua1995116/ip-search/ipquery"
     "html/template"
     "io"
     "log"
@@ -96,8 +97,16 @@ func handleSearch(w http.ResponseWriter, r *http.Request) {
             fmt.Fprintf(w, "格式错误!")
             return
         }
+        res, err := ipquery.IpFind(sQuery)
 
-        fmt.Fprintf(w, "ip填写正确")
+        if err != nil {
+            fmt.Fprintf(w, "抱歉库内暂无收入该ip")
+        } else {
+            fmt.Fprintf(w, string(res))
+        }
+
+        //fmt.Fprintf(w, "ip填写正确")
+
     }
 }
 
@@ -112,8 +121,6 @@ func handleApply (w http.ResponseWriter, r *http.Request) {
 
 func handleRegister(w http.ResponseWriter, r *http.Request) {
     if r.Method == "POST" {
-        email := r.FormValue("email")
-        code  := r.FormValue("code")
 
     }
 }
